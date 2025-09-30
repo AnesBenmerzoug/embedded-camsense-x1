@@ -1,0 +1,36 @@
+# Embedded Camsense-X1
+
+[crates-badge]: https://img.shields.io/crates/v/embedded-camsense-x1.svg
+[crates-url]: https://crates.io/crates/embedded-camsense-x1
+[docs-badge]: https://docs.rs/embedded-camsense-x1/badge.svg
+[docs-url]: https://docs.rs/embedded-camsense-x1
+[license-badge]: https://img.shields.io/badge/license-MIT%2FApache--2.0-blue?labelColor=1C2C2E&style=flat-square
+[ci-badge]: https://github.com/AnesBenmerzoug/embedded-camsense-x1/actions/workflows/main.yml/badge.svg
+[ci-url]: https://github.com/AnesBenmerzoug/embedded-camsense-x1/actions?query=workflow%3ACI+branch%3Amain
+
+[![Crates.io][crates-badge]][crates-url]
+[![Documentation][docs-badge]][docs-url]
+![MIT/Apache-2.0 licensed][license-badge]
+[![Build Status][ci-badge]][ci-url]
+
+> Platform agnostic Rust driver for the [Camsense-X1] LiDAR sensor, based on the [embedded-hal] traits.
+
+[Camsense-X1]: https://www.camsense.cn/en/robot/camsenseX1.html
+[embedded-hal]: https://github.com/rust-embedded/embedded-hal
+
+This library provides a `no_std` interface for interacting with the [Camsense-X1] LiDAR sensor.
+
+## License
+
+Licensed under either of
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
+
+at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.

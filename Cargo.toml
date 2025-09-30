@@ -1,0 +1,25 @@
+[package]
+name = "embedded-camsense-x1"
+version = "0.1.0"
+edition = "2024"
+description = "Platform-agnostic Rust driver for the TF-Luna LiDAR distance sensor."
+authors = ["Anes Benmerzoug <anes.benmerzoug@gmail.com>"]
+repository = "https://github.com/AnesBenmerzoug/embedded-camsense-x1"
+homepage = "https://github.com/AnesBenmerzoug/embedded-camsense-x1"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+keywords = [
+    "camsense-x1",
+    "lidar",
+    "distance-sensor",
+    "embedded-hal",
+    "embedded-hal-driver",
+]
+categories = ["embedded", "hardware-support", "no-std"]
+
+[dependencies]
+embedded-hal = "1.0.0"
+defmt = { version = "1.0.1", optional = true }
+
+[features]
+defmt = ["dep:defmt"]
