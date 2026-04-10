@@ -1,0 +1,15 @@
+[package]
+edition = "2021"
+name = "raspberrypi"
+rust-version = "1.86"
+version = "0.1.0"
+
+[[bin]]
+name = "raspberrypi"
+path = "./src/main.rs"
+
+[dependencies]
+rppal = { version = "0.22.1", features = ["embedded-hal"] }
+embedded-hal = "1.0.0"
+embedded-camsense-x1 = { path = "../.." }
+embedded-io = "0.7.1"
