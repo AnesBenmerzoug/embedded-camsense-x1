@@ -6,8 +6,8 @@ use embedded_hal::{
 };
 
 use crate::types::{Error, RawMeasurement};
-use crate::camsense_x1::state_machine::StateMachineWrapper;
-use crate::Measurement;
+use crate::camsense_x1::state_machine::{StateMachineWrapper};
+use crate::{Measurement, PointCloud};
 
 
 /// Camsense-X1 controller
@@ -34,26 +34,38 @@ where
         Ok(buffer)
     }
 
-    pub fn get_point_cloud(&mut self) -> Result<(RawMeasurement, Measurement), Error<UART::Error>> {
+    pub fn read_one_measurement(&mut self) -> Result<Measurement, Error<UART::Error>> {
         let mut state_machine = StateMachineWrapper::new();
         loop {
-            println!("state_machine = {:?}", state_machine);
             match state_machine {
-                StateMachineWrapper::Data(_) => {
-                    let data = self.read::<32>()?;
-                    for byte in data.iter() {
-                        println!("byte = {:x}", byte);
-                    }
+                StateMachineWrapper::Data(data_state_machine) => {
+                    let remaining_bytes = self.read::<31>()?;
+                    let mut data = [0; 32];
+                    data[0] = data_state_machine.first_byte();
+                    data[1..].copy_from_slice(&remaining_bytes);
                     let raw_measurement = RawMeasurement::from(data);
                     let measurement: Measurement = raw_measurement.into();
-                    return Ok((raw_measurement, measurement))
+                    return Ok(measurement);
                 },
                 _ => {
                     let byte = self.read::<1>()?;
-                    println!("byte = {:x}", byte[0]);
                     state_machine = state_machine.step(byte[0]);
                 }
             }
         }
+    }
+
+    pub fn read_point_cloud(&mut self) -> Result<PointCloud, Error<UART::Error>> {
+        let mut points = [None; 400];
+        for i in 0..50 {
+            let measurement =self.read_one_measurement()?;
+            for point in measurement.points {
+                if let Some(point) = point {
+                    points[point.index] = Some(point);
+                }
+            }
+        }
+        let point_cloud = PointCloud { points };
+        Ok(point_cloud)
     }
 }
