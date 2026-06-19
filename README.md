@@ -33,6 +33,35 @@ Most of the information about the inner workings of the LiDAR was taken from:
 - **Robust Protocol Synchronization**: Const-generic state machine for byte-level frame detection with automatic recovery from noisy UART lines.
 - **Checksum Validation**: Implements exact SDK algorithm (linear accumulator with 15-bit folding) to silently drop corrupted frames.
 
+## Device
+
+The Camsense-X1 is a cost-effective consumer-level LiDAR with the following characteristics[^1]:
+
+| Description         | Parameter value             |
+|---------------------|-----------------------------|
+| Operating range     | 100mm - 8000mm              |
+| Repeatability       | <0.5%                       |
+| Absolute accuracy   | <2%                         |
+| Angle resolution    | 0.9°                        |
+| Rotating speed      | 312±10 RPM                  |
+| Power consumption   | <2W                         |
+| Laser light source  | 780nm EEL/808nm VCSEL laser |
+| Laser safety level  | IEC60825 Class I            |
+
+[^1]: https://www.camsense.cn/en/robot/camsenseX1.html
+
+## Getting Started
+
+### Examples
+
+See the [examples](examples/) directory for examples of using the Camsense-X1 with different micro-controllers and boards.
+
+## Feature Flags
+
+- `defmt` - Enable logging output using [`defmt`](https://crates.io/crates/defmt) and implement `defmt::Format` on certain types.
+- `async` - Enable asynchronous interface.
+
+
 ## License
 
 Licensed under either of
