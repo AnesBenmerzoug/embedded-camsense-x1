@@ -1,3 +1,7 @@
+#[allow(unused)]
+// This is needed for calling round() on f32 types
+use micromath::F32Ext;
+
 use crate::constants::INDEX_MULTIPLIER;
 
 #[derive(Clone, Copy, Debug)]
