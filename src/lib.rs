@@ -1,8 +1,9 @@
 #![no_std]
 
-mod camsense_x1;
 mod constants;
+pub mod driver;
+mod state_machine;
 mod types;
 
-pub use camsense_x1::{Camsense, Config};
+pub use driver::blocking::{Camsense, Config};
 pub use types::{Error, Measurement, Scan};

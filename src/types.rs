@@ -91,8 +91,7 @@ impl TryFrom<[u8; 36]> for RawMeasurement {
             let quality = distance_bytes[2];
             // Flag this value as invalid if the flag bit is set
             // or the distance is 0
-            // or the quality is 0
-            let flag = (distance_bytes[1] >> 7) & 0x01 == 1 || value == 0 || quality == 0;
+            let flag = (distance_bytes[1] >> 7) & 0x01 == 1 || value == 0;
 
             let distance = RawDistance {
                 value,
@@ -142,7 +141,7 @@ impl From<(RawMeasurement, f32)> for Measurement {
 
         let mut points = [None; 8];
         for (i, raw_distance) in raw.distances.iter().enumerate() {
-            if raw_distance.flag {
+            if raw_distance.quality == 0 || raw_distance.flag {
                 continue;
             }
 
