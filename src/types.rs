@@ -9,8 +9,6 @@ use crate::constants::INDEX_MULTIPLIER;
 pub enum Error<E> {
     /// Wrapped UART Error
     UART(E),
-    /// Min or max speed limits exceeded
-    SpeedLimitExceeded(u16, u16, u16),
     /// Checksum mismatch error
     ChecksumMismatch(u32, u32),
     /// Other error
@@ -20,8 +18,10 @@ pub enum Error<E> {
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct RawDistance {
+    /// 14-bit unsigned distance in mm, top 2 bits masked off
     value: u16,
     quality: u8,
+    /// true = invalid return (bit 7 of high byte)
     flag: bool,
 }
 
@@ -90,8 +90,7 @@ impl TryFrom<[u8; 36]> for RawMeasurement {
             let value = u16::from_le_bytes(value_bytes);
             let quality = distance_bytes[2];
             // Flag this value as invalid if the flag bit is set
-            // or the distance is 0
-            let flag = (distance_bytes[1] >> 7) & 0x01 == 1 || value == 0;
+            let flag = (distance_bytes[1] >> 7) & 0x01 != 0;
 
             let distance = RawDistance {
                 value,
@@ -122,7 +121,7 @@ pub struct Point {
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Measurement {
-    pub speed: f32,
+    pub frequency: f32,
     pub start_angle: f32,
     pub end_angle: f32,
     pub points: [Option<Point>; 8],
@@ -130,7 +129,7 @@ pub struct Measurement {
 
 impl From<(RawMeasurement, f32)> for Measurement {
     fn from((raw, angle_offset): (RawMeasurement, f32)) -> Self {
-        let speed = raw.speed as f32 / 64.0;
+        let frequency = raw.speed as f32 / 3840.0;
         let start_angle = raw.start_angle as f32 / 64.0 - 640.0;
         let end_angle = raw.end_angle as f32 / 64.0 - 640.0;
         let step = if end_angle > start_angle {
@@ -141,7 +140,7 @@ impl From<(RawMeasurement, f32)> for Measurement {
 
         let mut points = [None; 8];
         for (i, raw_distance) in raw.distances.iter().enumerate() {
-            if raw_distance.quality == 0 || raw_distance.flag {
+            if raw_distance.flag || raw_distance.quality == 0 || raw_distance.value == 0 {
                 continue;
             }
 
@@ -154,7 +153,7 @@ impl From<(RawMeasurement, f32)> for Measurement {
             });
         }
         Self {
-            speed,
+            frequency,
             start_angle,
             end_angle,
             points,
