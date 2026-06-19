@@ -2,5 +2,5 @@
 default-target = "aarch64-unknown-linux-gnu"
 
 [target.aarch64-unknown-linux-gnu]
-image = ":edge"
+image = "ghcr.io/cross-rs/aarch64-unknown-linux-gnu:edge"
 runner = "native"  # don't run inside Docker
