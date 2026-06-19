@@ -15,13 +15,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  code-checks:
-    name: Code Checks
+  code-checks-library:
+    name: Code Checks for Library
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        working-directory: [".", "examples/raspberrypi"]
         action:
           - command: build
             args: --release
@@ -33,6 +32,35 @@ jobs:
             args: --all-features
           - command: publish
             args: --dry-run
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        id: rust-toolchain
+        with:
+          components: rust-src, rustfmt, clippy
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ steps.rust-toolchain.outputs.cachekey }}
+      - name: Run command 'cargo ${{ matrix.action.command }}'' in directory '${{ matrix.working-directory }}'
+        run: cargo ${{ matrix.action.command }} ${{ matrix.action.args }}
+
+  code-checks-examples:
+    name: Code Checks for Examples
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        working-directory: ["examples/raspberrypi" ]
+        action:
+          - command: build
+            args: --release
+          - command: fmt
+            args: --all -- --check
+          - command: clippy
+            args: --all-features --workspace -- -D warnings
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5

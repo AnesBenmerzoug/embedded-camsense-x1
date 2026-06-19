@@ -1,5 +1,5 @@
-use core::time::Duration;
 use crate::constants::{ANGLE_CENTER_OFFSET_DEFAULT, UPDATE_INTERVAL_DEFAULT};
+use core::time::Duration;
 
 /// Camsense-X1 LiDAR sensor driver configuration.
 ///

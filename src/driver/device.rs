@@ -2,14 +2,13 @@
 // This is needed for calling round() on f32 types
 use micromath::F32Ext;
 
+use crate::config::Config;
 use crate::constants::{
-    INDEX_MULTIPLIER, NUMBER_OF_MEASUREMENTS_PER_SCAN,
-    NUMBER_OF_POINTS_PER_SCAN,
+    INDEX_MULTIPLIER, NUMBER_OF_MEASUREMENTS_PER_SCAN, NUMBER_OF_POINTS_PER_SCAN,
 };
 use crate::state_machine::StateMachineWrapper;
 use crate::types::{Error, RawMeasurement};
 use crate::{PartialScan, Scan};
-use crate::config::Config;
 
 use super::{bisync, only_async, only_sync};
 
