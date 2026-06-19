@@ -20,6 +20,11 @@
 
 This library provides a `no_std` interface for interacting with the [Camsense-X1] LiDAR sensor.
 
+Most of the information about the inner workings of the LiDAR was taken from:
+
+- [Official C++ SDK](https://github.com/camsense/SDK_V3.0/tree/master)
+- [Vidicon's reverse engineering of Camsense X1](https://github.com/Vidicon/camsense-X1)
+
 ## License
 
 Licensed under either of
