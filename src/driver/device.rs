@@ -116,12 +116,10 @@ where
         let mut points = [None; NUMBER_OF_POINTS_PER_SCAN];
         for _ in 0..NUMBER_OF_MEASUREMENTS_PER_SCAN {
             let measurement = self.read_partial_scan().await?;
-            for point in measurement.points {
-                if let Some(point) = point {
-                    let index = (point.angle * INDEX_MULTIPLIER).round() as usize
-                        % NUMBER_OF_POINTS_PER_SCAN;
-                    points[index] = Some(point);
-                }
+            for point in measurement.points.into_iter().flatten() {
+                let index =
+                    (point.angle * INDEX_MULTIPLIER).round() as usize % NUMBER_OF_POINTS_PER_SCAN;
+                points[index] = Some(point);
             }
             self.delay
                 .delay_us(self.config.update_interval.as_micros() as u32)
