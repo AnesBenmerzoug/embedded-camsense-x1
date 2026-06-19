@@ -156,6 +156,6 @@ impl From<(RawMeasurement, f32)> for Measurement {
 
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct PointCloud {
+pub struct Scan {
     pub points: [Option<Point>; 400],
 }

@@ -6,7 +6,7 @@ use embedded_io::Read;
 use crate::camsense_x1::state_machine::StateMachineWrapper;
 use crate::constants::NUMBER_OF_MEASUREMENTS;
 use crate::types::{Error, RawMeasurement};
-use crate::{Measurement, PointCloud};
+use crate::{Measurement, Scan};
 
 /// Camsense-X1 controller configuration
 #[derive(Debug, Clone, Copy)]
@@ -50,15 +50,15 @@ where
         }
     }
 
-    pub fn read<const N: usize>(&mut self) -> Result<[u8; N], Error<UART::Error>> {
+    pub fn read_bytes<const N: usize>(&mut self) -> Result<[u8; N], Error<UART::Error>> {
         let mut buffer = [0; N];
         self.uart.read(&mut buffer).map_err(Error::UART)?;
         Ok(buffer)
     }
 
-    pub fn read_one_measurement(&mut self) -> Result<Measurement, Error<UART::Error>> {
+    pub fn read_sample(&mut self) -> Result<Measurement, Error<UART::Error>> {
         loop {
-            let byte = self.read::<1>()?;
+            let byte = self.read_bytes::<1>()?;
             self.state_machine = self.state_machine.step(byte[0]);
 
             if let Some(buf) = self.state_machine.take_buf() {
@@ -76,17 +76,17 @@ where
         }
     }
 
-    pub fn read_point_cloud(&mut self) -> Result<PointCloud, Error<UART::Error>> {
+    pub fn read_scan(&mut self) -> Result<Scan, Error<UART::Error>> {
         let mut points = [None; 400];
         for _ in 0..NUMBER_OF_MEASUREMENTS {
-            let measurement = self.read_one_measurement()?;
+            let measurement = self.read_sample()?;
             for point in measurement.points {
                 if let Some(point) = point {
                     points[point.index] = Some(point);
                 }
             }
         }
-        let point_cloud = PointCloud { points };
+        let point_cloud = Scan { points };
         Ok(point_cloud)
     }
 }
