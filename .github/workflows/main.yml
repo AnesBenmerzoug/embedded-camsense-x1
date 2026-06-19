@@ -95,7 +95,7 @@ jobs:
           command: build
           target: ${{ matrix.example.target }}
           args: "--release"
-          working-directory: ${{ matrix.example.working-directory }}
+          working-directory: ${{ matrix.example.working_directory }}
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
