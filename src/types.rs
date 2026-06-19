@@ -1,7 +1,10 @@
+
+
 use crate::constants::{
     NUMBER_OF_POINTS_PER_MEASUREMENT, NUMBER_OF_POINTS_PER_SCAN, PAYLOAD_SIZE_IN_BYTES,
 };
 
+/// Errors that can occur during Camsense-X1 communication or packet parsing.
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Error<E> {
@@ -13,16 +16,19 @@ pub enum Error<E> {
     Other,
 }
 
+/// Raw distance measurement extracted from a single LiDAR packet.
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct RawDistance {
     /// 14-bit unsigned distance in mm, top 2 bits masked off
     value: u16,
+    /// Signal quality/intensity indicator (0-255).
     quality: u8,
     /// true = invalid return (bit 7 of high byte)
     flag: bool,
 }
 
+/// Parsed raw data from a single 36-byte LiDAR packet.
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct RawMeasurement {
@@ -37,10 +43,10 @@ pub struct RawMeasurement {
     pub checksum: u16,
 }
 
-/// Verifies the Camsense X1 checksum.
+/// Verifies the Camsense-X1 checksum.
 /// Accepts the 36-byte payload (header, data, checksum).
 ///
-/// The exact algorithm was taken from the official Camsense X1 C++ SDK:
+/// The exact algorithm was taken from the official Camsense-X1 C++ SDK:
 /// https://github.com/camsense/SDK_V3.0/blob/17e0264302e2ca4cf14d5402af7437d16a37ab95/src/base/ReadParsePackage.cpp#L148
 #[inline]
 pub fn check_lidar_checksum(data: &[u8; PAYLOAD_SIZE_IN_BYTES]) -> Result<(), Error<()>> {
@@ -112,6 +118,7 @@ impl TryFrom<[u8; 36]> for RawMeasurement {
     }
 }
 
+/// A single validated LiDAR point with computed angle.
 #[derive(Clone, Copy, Default, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Point {
@@ -119,12 +126,20 @@ pub struct Point {
     pub angle: f32,
 }
 
+/// A single partial scan containing up to [`NUMBER_OF_POINTS_PER_MEASUREMENT`] valid points.
+///
+/// Represents the decoded and filtered data from one raw LiDAR packet.
+/// Invalid points, zero-quality returns, and flagged measurements are represented as None.
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct PartialScan {
+    /// Rotation frequency in Hz.
     pub frequency: f32,
+    /// Start angle of the packet in degrees.
     pub start_angle: f32,
+    /// End angle of the packet in degrees.
     pub end_angle: f32,
+    /// Array of [`NUMBER_OF_POINTS_PER_MEASUREMENT`] points within this partial scan.
     pub points: [Option<Point>; NUMBER_OF_POINTS_PER_MEASUREMENT],
 }
 
@@ -160,8 +175,12 @@ impl From<(RawMeasurement, f32)> for PartialScan {
     }
 }
 
+/// A complete 360° LiDAR scan.
+///
+/// Aggregates multiple partial scans into a fixed-size array of [`NUMBER_OF_POINTS_PER_SCAN`] points.
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Scan {
+    /// Full array of [`NUMBER_OF_POINTS_PER_SCAN`] points. `None` indicates no valid return at that angle/index.
     pub points: [Option<Point>; NUMBER_OF_POINTS_PER_SCAN],
 }

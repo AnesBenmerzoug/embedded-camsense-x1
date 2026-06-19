@@ -88,7 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let options = eframe::NativeOptions::default();
     let _ = eframe::run_native(
-        "Camsense X1",
+        "Camsense-X1",
         options,
         Box::new(|_cc| Ok(Box::new(LidarApp::new(lidar)))),
     );

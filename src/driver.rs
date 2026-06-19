@@ -1,3 +1,5 @@
+//! Camsense-X1 Driver.
+
 #[path = "driver"]
 #[cfg(feature = "async")]
 pub mod asynchronous {

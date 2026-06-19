@@ -1,3 +1,5 @@
+//! Constants module
+
 /// Number of measurements per scan
 pub const NUMBER_OF_MEASUREMENTS_PER_SCAN: usize = 50;
 /// Number of points per single measurement / partial scan

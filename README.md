@@ -23,7 +23,7 @@ This library provides a `no_std` interface for interacting with the [Camsense-X1
 Most of the information about the inner workings of the LiDAR was taken from:
 
 - [Official C++ SDK](https://github.com/camsense/SDK_V3.0/tree/master)
-- [Vidicon's reverse engineering of Camsense X1](https://github.com/Vidicon/camsense-X1)
+- [Vidicon's reverse engineering of Camsense-X1](https://github.com/Vidicon/camsense-X1)
 
 ## Features
 
@@ -48,7 +48,7 @@ The Camsense-X1 is a cost-effective consumer-level LiDAR with the following char
 | Laser light source  | 780nm EEL/808nm VCSEL laser |
 | Laser safety level  | IEC60825 Class I            |
 
-[^1]: https://www.camsense.cn/en/robot/camsenseX1.html
+[^1]: [Camsense-X1 Product Page](https://www.camsense.cn/en/robot/camsenseX1.html)
 
 ## Getting Started
 

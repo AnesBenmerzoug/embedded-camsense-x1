@@ -104,7 +104,7 @@ impl StateMachine<Complete> {
     }
 }
 
-/// Camsense X1 UART Packet State Machine
+/// Camsense-X1 UART Packet State Machine
 ///
 /// Parses incoming LiDAR data frames byte by byte. The protocol uses a fixed
 /// 4-byte header followed by a 32-byte payload:
@@ -140,7 +140,7 @@ pub enum StateMachineWrapper {
     HeaderAA(StateMachine<Header<0xAA>>),
     // Expects the data format info byte `0x03`.
     Header03(StateMachine<Header<0x03>>),
-    /// Expects the fixed packet length indicator byte (`0x08`) specific to the Camsense X1.
+    /// Expects the fixed packet length indicator byte (`0x08`) specific to the Camsense-X1.
     Header08(StateMachine<Header<0x08>>),
     /// Accumulating payload bytes. Transitions to `Complete` after 32 bytes.
     Data(StateMachine<Data>),

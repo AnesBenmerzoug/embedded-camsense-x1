@@ -21,6 +21,9 @@ use embedded_io::Read;
 use embedded_hal_async::delay::DelayNs;
 #[only_async]
 use embedded_io_async::Read;
+
+// TODO: Figure out a better to document both blocking and synchronous interfaces without duplicating
+// the structs
 /// Camsense-X1 LiDAR sensor driver.
 ///
 /// Handles byte-level framing, checksum validation, and angle computation.
@@ -31,6 +34,28 @@ use embedded_io_async::Read;
 /// let mut lidar = Camsense::new(uart, delay);
 /// let scan = lidar.read_scan()?;
 /// ```
+#[only_sync]
+#[derive(Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub struct CamsenseX1<UART: Read, D: DelayNs> {
+    /// Concrete UART implementation.
+    uart: UART,
+    delay: D,
+    state_machine: StateMachineWrapper,
+    config: Config,
+}
+
+/// Camsense-X1 LiDAR sensor driver.
+///
+/// Handles byte-level framing, checksum validation, and angle computation.
+/// Produces either individual [`PartialScan`]s or full 360° [`Scan`]s.
+///
+/// # Example
+/// ```rust
+/// let mut lidar = Camsense::new(uart, delay);
+/// let scan = lidar.read_scan().await?;
+/// ```
+#[only_async]
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct CamsenseX1<UART: Read, D: DelayNs> {
