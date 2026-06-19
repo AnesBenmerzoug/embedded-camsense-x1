@@ -1,8 +1,6 @@
-#[allow(unused)]
-// This is needed for calling round() on f32 types
-use micromath::F32Ext;
-
-use crate::constants::INDEX_MULTIPLIER;
+use crate::constants::{
+    NUMBER_OF_POINTS_PER_MEASUREMENT, NUMBER_OF_POINTS_PER_SCAN, PAYLOAD_SIZE_IN_BYTES,
+};
 
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -29,9 +27,13 @@ pub struct RawDistance {
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct RawMeasurement {
     pub speed: u16,
+    /// Start angle of measurement in degrees
     pub start_angle: u16,
+    /// End angle of measurement in degrees
     pub end_angle: u16,
-    pub distances: [RawDistance; 8],
+    /// Array of distance measurements
+    pub distances: [RawDistance; NUMBER_OF_POINTS_PER_MEASUREMENT],
+    /// 16-bit Checksum
     pub checksum: u16,
 }
 
@@ -41,7 +43,7 @@ pub struct RawMeasurement {
 /// The exact algorithm was taken from the official Camsense X1 C++ SDK:
 /// https://github.com/camsense/SDK_V3.0/blob/17e0264302e2ca4cf14d5402af7437d16a37ab95/src/base/ReadParsePackage.cpp#L148
 #[inline]
-pub fn check_lidar_checksum(data: &[u8; 36]) -> Result<(), Error<()>> {
+pub fn check_lidar_checksum(data: &[u8; PAYLOAD_SIZE_IN_BYTES]) -> Result<(), Error<()>> {
     let mut accumulator: u32 = 0;
 
     // Process all words in the slice
@@ -69,7 +71,7 @@ pub fn check_lidar_checksum(data: &[u8; 36]) -> Result<(), Error<()>> {
 
 impl TryFrom<[u8; 36]> for RawMeasurement {
     type Error = Error<()>; // No UART context during pure byte parsing
-    fn try_from(data: [u8; 36]) -> Result<Self, Self::Error> {
+    fn try_from(data: [u8; PAYLOAD_SIZE_IN_BYTES]) -> Result<Self, Self::Error> {
         // Validate checksum
         check_lidar_checksum(&data)?;
 
@@ -115,19 +117,18 @@ impl TryFrom<[u8; 36]> for RawMeasurement {
 pub struct Point {
     pub distance: u16,
     pub angle: f32,
-    pub index: usize,
 }
 
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct Measurement {
+pub struct PartialScan {
     pub frequency: f32,
     pub start_angle: f32,
     pub end_angle: f32,
-    pub points: [Option<Point>; 8],
+    pub points: [Option<Point>; NUMBER_OF_POINTS_PER_MEASUREMENT],
 }
 
-impl From<(RawMeasurement, f32)> for Measurement {
+impl From<(RawMeasurement, f32)> for PartialScan {
     fn from((raw, angle_offset): (RawMeasurement, f32)) -> Self {
         let frequency = raw.speed as f32 / 3840.0;
         let start_angle = raw.start_angle as f32 / 64.0 - 640.0;
@@ -138,18 +139,16 @@ impl From<(RawMeasurement, f32)> for Measurement {
             (end_angle - (start_angle - 360.0)) / 7.0
         };
 
-        let mut points = [None; 8];
+        let mut points = [None; NUMBER_OF_POINTS_PER_MEASUREMENT];
         for (i, raw_distance) in raw.distances.iter().enumerate() {
             if raw_distance.flag || raw_distance.quality == 0 || raw_distance.value == 0 {
                 continue;
             }
 
             let angle = (start_angle + step * i as f32 + angle_offset) % 360.0;
-            let index = (angle * INDEX_MULTIPLIER).round() as usize % 400;
             points[i] = Some(Point {
                 distance: raw_distance.value,
                 angle,
-                index,
             });
         }
         Self {
@@ -164,5 +163,5 @@ impl From<(RawMeasurement, f32)> for Measurement {
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Scan {
-    pub points: [Option<Point>; 400],
+    pub points: [Option<Point>; NUMBER_OF_POINTS_PER_SCAN],
 }

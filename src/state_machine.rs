@@ -1,3 +1,5 @@
+use crate::constants::PAYLOAD_SIZE_IN_BYTES;
+
 // States
 #[derive(Debug, Copy, Clone)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -64,7 +66,7 @@ impl From<StateMachine<Header<0x08>>> for StateMachine<Data> {
     /// `[0x55, 0xAA, 0x03, 0x08]` into the buffer so the checksum function
     /// always receives a complete, correctly framed 36-byte packet.
     fn from(_: StateMachine<Header<0x08>>) -> Self {
-        let mut buf = [0u8; 36];
+        let mut buf = [0u8; PAYLOAD_SIZE_IN_BYTES];
         // Hardcode first 4 bytes
         buf[0..4].copy_from_slice(&[0x55, 0xAA, 0x03, 0x08]);
         Self {
@@ -83,7 +85,7 @@ impl StateMachine<Data> {
     pub fn push(mut self, byte: u8) -> Result<Self, StateMachine<Complete>> {
         self.state.buf[self.state.idx as usize] = byte;
         self.state.idx += 1;
-        if self.state.idx == 36 {
+        if self.state.idx == PAYLOAD_SIZE_IN_BYTES as u8 {
             Err(StateMachine {
                 state: Complete {
                     buf: self.state.buf,
@@ -97,7 +99,7 @@ impl StateMachine<Data> {
 
 impl StateMachine<Complete> {
     /// Returns a reference to the completed 36-byte packet buffer.
-    pub fn buf(&self) -> &[u8; 36] {
+    pub fn buf(&self) -> &[u8; PAYLOAD_SIZE_IN_BYTES] {
         &self.state.buf
     }
 }
@@ -142,7 +144,7 @@ pub enum StateMachineWrapper {
     Header08(StateMachine<Header<0x08>>),
     /// Accumulating payload bytes. Transitions to `Complete` after 32 bytes.
     Data(StateMachine<Data>),
-    /// Packet fully received. Call [`take_buf`] to retrieve the buffer,
+    /// Packet fully received. Call [`take_buffer`] to retrieve the buffer,
     /// then [`reset`] before processing the next frame.
     Complete(StateMachine<Complete>),
 }
@@ -189,7 +191,7 @@ impl StateMachineWrapper {
 
     /// Returns a reference to the completed packet buffer, or `None` if the
     /// packet is not yet complete.
-    pub fn take_buf(&self) -> Option<&[u8; 36]> {
+    pub fn take_buffer(&self) -> Option<&[u8; PAYLOAD_SIZE_IN_BYTES]> {
         if let Self::Complete(s) = self {
             Some(s.buf())
         } else {

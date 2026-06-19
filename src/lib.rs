@@ -6,4 +6,4 @@ mod state_machine;
 mod types;
 
 pub use driver::blocking::{Camsense, Config};
-pub use types::{Error, Measurement, Scan};
+pub use types::{Error, PartialScan, Scan};

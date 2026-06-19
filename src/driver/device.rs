@@ -1,9 +1,13 @@
 use core::time::Duration;
 
-use crate::constants::NUMBER_OF_MEASUREMENTS;
+#[allow(unused)]
+// This is needed for calling round() on f32 types
+use micromath::F32Ext;
+
+use crate::constants::{INDEX_MULTIPLIER, NUMBER_OF_MEASUREMENTS, NUMBER_OF_POINTS_PER_SCAN};
 use crate::state_machine::StateMachineWrapper;
 use crate::types::{Error, RawMeasurement};
-use crate::{Measurement, Scan};
+use crate::{PartialScan, Scan};
 
 use super::{bisync, only_async, only_sync};
 
@@ -70,13 +74,18 @@ where
         Ok(buffer)
     }
 
+    /// Perform a partial scan with the sensor.
+    ///
+    /// # Returns
+    /// - `Ok(PartialScan)`: Structure 8 measured points, each with distance (mm) and angle (°).
+    /// - `Err(Error<UART::Error>)`: If there was an error during measurement.
     #[bisync]
-    pub async fn read_sample(&mut self) -> Result<Measurement, Error<UART::Error>> {
+    pub async fn read_partial_scan(&mut self) -> Result<PartialScan, Error<UART::Error>> {
         loop {
             let byte = self.read_bytes::<1>().await?;
             self.state_machine = self.state_machine.step(byte[0]);
 
-            if let Some(buf) = self.state_machine.take_buf() {
+            if let Some(buf) = self.state_machine.take_buffer() {
                 let data = *buf;
                 self.state_machine.reset();
 
@@ -91,14 +100,21 @@ where
         }
     }
 
+    /// Perform a complete scan with the sensor.
+    ///
+    /// # Returns
+    /// - `Ok(Scan)`: Structure containing 400 measured points, each with distance (mm) and angle (°).
+    /// - `Err(Error<UART::Error>)`: If there was an error during measurement.
     #[bisync]
     pub async fn read_scan(&mut self) -> Result<Scan, Error<UART::Error>> {
-        let mut points = [None; 400];
+        let mut points = [None; NUMBER_OF_POINTS_PER_SCAN];
         for _ in 0..NUMBER_OF_MEASUREMENTS {
-            let measurement = self.read_sample().await?;
+            let measurement = self.read_partial_scan().await?;
             for point in measurement.points {
                 if let Some(point) = point {
-                    points[point.index] = Some(point);
+                    let index = (point.angle * INDEX_MULTIPLIER).round() as usize
+                        % NUMBER_OF_POINTS_PER_SCAN;
+                    points[index] = Some(point);
                 }
             }
             self.delay
