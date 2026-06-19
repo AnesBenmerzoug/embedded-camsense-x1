@@ -1,16 +1,15 @@
-use core::time::Duration;
-
 #[allow(unused)]
 // This is needed for calling round() on f32 types
 use micromath::F32Ext;
 
 use crate::constants::{
-    ANGLE_CENTER_OFFSET_DEFAULT, INDEX_MULTIPLIER, NUMBER_OF_MEASUREMENTS_PER_SCAN,
-    NUMBER_OF_POINTS_PER_SCAN, UPDATE_INTERVAL_DEFAULT,
+    INDEX_MULTIPLIER, NUMBER_OF_MEASUREMENTS_PER_SCAN,
+    NUMBER_OF_POINTS_PER_SCAN,
 };
 use crate::state_machine::StateMachineWrapper;
 use crate::types::{Error, RawMeasurement};
 use crate::{PartialScan, Scan};
+use crate::config::Config;
 
 use super::{bisync, only_async, only_sync};
 
@@ -23,41 +22,6 @@ use embedded_io::Read;
 use embedded_hal_async::delay::DelayNs;
 #[only_async]
 use embedded_io_async::Read;
-
-/// Camsense-X1 LiDAR sensor driver configuration.
-///
-/// Use [`Config::default`] for typical sensor orientations, or construct
-/// manually to correct for non-standard mounting.
-///
-/// # Example
-/// ```rust
-/// use std::time::Duration;
-/// let config = Config { angle_offset: 28.5, update_interval: Duration::from_micros(10) };
-/// let lidar = Camsense::with_config(uart, delay, config);
-/// ```
-#[derive(Debug, Clone, Copy)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct Config {
-    /// Angular correction applied to every point, in degrees.
-    ///
-    /// Added to each computed angle before storing the point, compensating
-    /// for the sensor's physical mounting orientation. Defaults to [`ANGLE_CENTER_OFFSET_DEFAULT`].
-    angle_offset: f32,
-    /// Time duration between partial scans
-    ///
-    /// Defaults to [`UPDATE_INTERVAL_DEFAULT`].
-    update_interval: Duration,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            angle_offset: ANGLE_CENTER_OFFSET_DEFAULT,
-            update_interval: Duration::from_micros(UPDATE_INTERVAL_DEFAULT),
-        }
-    }
-}
-
 /// Camsense-X1 LiDAR sensor driver.
 ///
 /// Handles byte-level framing, checksum validation, and angle computation.
@@ -70,7 +34,7 @@ impl Default for Config {
 /// ```
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct Camsense<UART: Read, D: DelayNs> {
+pub struct CamsenseX1<UART: Read, D: DelayNs> {
     /// Concrete UART implementation.
     uart: UART,
     delay: D,
@@ -78,7 +42,7 @@ pub struct Camsense<UART: Read, D: DelayNs> {
     config: Config,
 }
 
-impl<UART, D> Camsense<UART, D>
+impl<UART, D> CamsenseX1<UART, D>
 where
     UART: Read,
     D: DelayNs,
