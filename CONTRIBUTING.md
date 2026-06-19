@@ -1,0 +1,28 @@
+# Contributing
+
+## Prerequisites
+
+- Camsense-X1 LiDAR sensor
+- Rust 1.86+
+- [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov)
+
+## Release Process
+
+- Make sure CI passes.
+- Update version number.
+- Update changelog following the [Common Changelog](https://common-changelog.org) style guide
+  (as much as possible, of course).
+- Create tag for latest commit (v[0-9]+\.[0-9]+\.[0-9]+) and push it: 
+
+  ```shell
+  git tag -a <tag> -m "<tag message e.g. current date>"
+  ```
+
+- Let CI handle the rest.
+
+## Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.
+
