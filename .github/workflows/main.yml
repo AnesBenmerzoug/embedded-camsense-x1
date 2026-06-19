@@ -69,6 +69,9 @@ jobs:
         id: rust-toolchain
         with:
           components: rust-src, rustfmt, clippy
+          targets: |
+            x86_64-unknown-linux-gnu
+            aarch64-unknown-linux-gnu
       - name: Enable caching
         uses: Swatinem/rust-cache@v2
         with:
