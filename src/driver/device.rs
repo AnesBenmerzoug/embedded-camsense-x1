@@ -4,7 +4,10 @@ use core::time::Duration;
 // This is needed for calling round() on f32 types
 use micromath::F32Ext;
 
-use crate::constants::{INDEX_MULTIPLIER, NUMBER_OF_MEASUREMENTS, NUMBER_OF_POINTS_PER_SCAN};
+use crate::constants::{
+    ANGLE_CENTER_OFFSET_DEFAULT, INDEX_MULTIPLIER, NUMBER_OF_MEASUREMENTS_PER_SCAN,
+    NUMBER_OF_POINTS_PER_SCAN, UPDATE_INTERVAL_DEFAULT,
+};
 use crate::state_machine::StateMachineWrapper;
 use crate::types::{Error, RawMeasurement};
 use crate::{PartialScan, Scan};
@@ -21,24 +24,50 @@ use embedded_hal_async::delay::DelayNs;
 #[only_async]
 use embedded_io_async::Read;
 
-/// Camsense-X1 controller configuration
+/// Camsense-X1 LiDAR sensor driver configuration.
+///
+/// Use [`Config::default`] for typical sensor orientations, or construct
+/// manually to correct for non-standard mounting.
+///
+/// # Example
+/// ```rust
+/// use std::time::Duration;
+/// let config = Config { angle_offset: 28.5, update_interval: Duration::from_micros(10) };
+/// let lidar = Camsense::with_config(uart, delay, config);
+/// ```
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Config {
+    /// Angular correction applied to every point, in degrees.
+    ///
+    /// Added to each computed angle before storing the point, compensating
+    /// for the sensor's physical mounting orientation. Defaults to [`ANGLE_CENTER_OFFSET_DEFAULT`].
     angle_offset: f32,
+    /// Time duration between partial scans
+    ///
+    /// Defaults to [`UPDATE_INTERVAL_DEFAULT`].
     update_interval: Duration,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
-            angle_offset: 13.0,
-            update_interval: Duration::from_micros(10),
+            angle_offset: ANGLE_CENTER_OFFSET_DEFAULT,
+            update_interval: Duration::from_micros(UPDATE_INTERVAL_DEFAULT),
         }
     }
 }
 
-/// Camsense-X1 controller
+/// Camsense-X1 LiDAR sensor driver.
+///
+/// Handles byte-level framing, checksum validation, and angle computation.
+/// Produces either individual [`PartialScan`]s or full 360° [`Scan`]s.
+///
+/// # Example
+/// ```rust
+/// let mut lidar = Camsense::new(uart, delay);
+/// let scan = lidar.read_scan()?;
+/// ```
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Camsense<UART: Read, D: DelayNs> {
@@ -54,10 +83,12 @@ where
     UART: Read,
     D: DelayNs,
 {
+    /// Creates a new driver with default [`Config`].
     pub fn new(uart: UART, delay: D) -> Self {
         Self::with_config(uart, delay, Config::default())
     }
 
+    /// Creates a new driver with a custom [`Config`].
     pub fn with_config(uart: UART, delay: D, config: Config) -> Self {
         Self {
             uart,
@@ -67,6 +98,7 @@ where
         }
     }
 
+    /// Reads exactly `N` raw bytes from the UART.
     #[bisync]
     async fn read_bytes<const N: usize>(&mut self) -> Result<[u8; N], Error<UART::Error>> {
         let mut buffer = [0; N];
@@ -74,10 +106,18 @@ where
         Ok(buffer)
     }
 
-    /// Perform a partial scan with the sensor.
+    /// Reads a [`PartialScan`] from the sensor.
+    ///
+    /// Feeds bytes one at a time into the packet state machine until
+    /// a complete [`PAYLOAD_SIZE_IN_BYTES`]-byte frame is received.
+    /// Frames that fail checksum validation are silently discarded and the state machine resyncs
+    /// automatically, so this method will keep reading until a valid packet
+    /// is found.
+    ///
+    /// Each frame contains measurements for [`NUMBER_OF_POINTS_PER_MEASUREMENT`] points.
     ///
     /// # Returns
-    /// - `Ok(PartialScan)`: Structure 8 measured points, each with distance (mm) and angle (°).
+    /// - `Ok(PartialScan)`: Structure containing [`NUMBER_OF_POINTS_PER_MEASUREMENT`] measured points, each with distance (mm) and angle (°).
     /// - `Err(Error<UART::Error>)`: If there was an error during measurement.
     #[bisync]
     pub async fn read_partial_scan(&mut self) -> Result<PartialScan, Error<UART::Error>> {
@@ -100,15 +140,18 @@ where
         }
     }
 
-    /// Perform a complete scan with the sensor.
+    /// Reads a complete 360° [`Scan`] from the sensor.
+    ///
+    /// Collects [`NUMBER_OF_MEASUREMENTS_PER_SCAN`] consecutive [`PartialScan`] packets
+    /// and merges their points into a [`NUMBER_OF_POINTS_PER_SCAN`]-slot array indexed by angle.
     ///
     /// # Returns
-    /// - `Ok(Scan)`: Structure containing 400 measured points, each with distance (mm) and angle (°).
+    /// - `Ok(Scan)`: Structure containing [`NUMBER_OF_POINTS_PER_SCAN`] measured points, each with distance (mm) and angle (°).
     /// - `Err(Error<UART::Error>)`: If there was an error during measurement.
     #[bisync]
     pub async fn read_scan(&mut self) -> Result<Scan, Error<UART::Error>> {
         let mut points = [None; NUMBER_OF_POINTS_PER_SCAN];
-        for _ in 0..NUMBER_OF_MEASUREMENTS {
+        for _ in 0..NUMBER_OF_MEASUREMENTS_PER_SCAN {
             let measurement = self.read_partial_scan().await?;
             for point in measurement.points {
                 if let Some(point) = point {

@@ -1,6 +1,6 @@
 #![no_std]
 
-mod constants;
+pub mod constants;
 pub mod driver;
 mod state_machine;
 mod types;
