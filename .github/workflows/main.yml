@@ -94,7 +94,8 @@ jobs:
         with:
           command: build
           target: ${{ matrix.example.target }}
-          args: "--release"
+          args: "--locked --release --verbose"
+          strip: true
           working-directory: ${{ matrix.example.working_directory }}
 
   release:
