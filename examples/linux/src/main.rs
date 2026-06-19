@@ -4,10 +4,10 @@ use std::error::Error;
 use std::thread::sleep;
 use std::time::Duration;
 
-use rerun::{RecordingStreamBuilder, Points2D, Position2D};
 use embedded_camsense_x1::CamsenseX1;
 use linux_embedded_hal::serialport::{self, DataBits, Parity, StopBits};
 use linux_embedded_hal::Delay;
+use rerun::{Points2D, Position2D, RecordingStreamBuilder};
 
 use linux::WrappedUart;
 
@@ -17,7 +17,6 @@ const BAUDRATE: u32 = 115_200;
 const PARITY: Parity = Parity::None;
 const DATA_BITS: DataBits = DataBits::Eight;
 const STOP_BITS: StopBits = StopBits::One;
-
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut uart = serialport::new("/dev/ttyUSB0", BAUDRATE).open()?;
@@ -44,7 +43,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     loop {
         match lidar.read_scan() {
             Ok(scan) => {
-                let positions: Vec<Position2D> = scan.points
+                let positions: Vec<Position2D> = scan
+                    .points
                     .iter()
                     .filter_map(|p| *p)
                     .map(|p| {
