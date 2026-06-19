@@ -172,7 +172,7 @@ impl StateMachineWrapper {
             Self::HeaderAA(state) if value == 0x03 => Self::Header03(state.into()),
             Self::Header03(state) if value == 0x08 => Self::Header08(state.into()),
             Self::Header08(s) => {
-                let mut data_sm: StateMachine<Data> = s.into();
+                let data_sm: StateMachine<Data> = s.into();
                 // push the first payload byte immediately
                 match data_sm.push(value) {
                     Ok(d) => Self::Data(d),
@@ -185,11 +185,6 @@ impl StateMachineWrapper {
             },
             _ => Self::Header55(StateMachine::new()),
         }
-    }
-
-    /// Returns `true` if a complete 36-byte packet has been received.
-    pub fn is_complete(&self) -> bool {
-        matches!(self, Self::Complete(_))
     }
 
     /// Returns a reference to the completed packet buffer, or `None` if the

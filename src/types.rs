@@ -1,10 +1,4 @@
-use crate::Error::ChecksumMismatch;
-use embedded_io::Error as UARTErrorTrait;
-
-const ANGLE_OFFSET: f32 = 28.5;
-const INDEX_MULTIPLIER: f32 = 400.0 / 360.0;
-const SPEED_MAX: u16 = 420;
-const SPEED_MIN: u16 = 300;
+use crate::constants::INDEX_MULTIPLIER;
 
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -61,7 +55,10 @@ pub fn check_lidar_checksum(data: &[u8; 36]) -> Result<(), Error<()>> {
     if computed_checksum == expected_checksum {
         Ok(())
     } else {
-        Err(ChecksumMismatch(expected_checksum, computed_checksum))
+        Err(Error::ChecksumMismatch(
+            expected_checksum,
+            computed_checksum,
+        ))
     }
 }
 
@@ -115,8 +112,8 @@ pub struct Measurement {
     pub points: [Option<Point>; 8],
 }
 
-impl From<RawMeasurement> for Measurement {
-    fn from(raw: RawMeasurement) -> Self {
+impl From<(RawMeasurement, f32)> for Measurement {
+    fn from((raw, angle_offset): (RawMeasurement, f32)) -> Self {
         let frequency = raw.speed as f32 / 60.0;
         let start_angle = raw.start_angle as f32 / 64.0 - 640.0;
         let end_angle = raw.end_angle as f32 / 64.0 - 640.0;
@@ -133,8 +130,7 @@ impl From<RawMeasurement> for Measurement {
             if raw_distance.quality == 0 {
                 continue;
             }
-            let angle = (start_angle + step * i as f32 + ANGLE_OFFSET) % 360.0;
-            //println!("angle: {}, distance: {}, quality: {}", angle, raw_distance.value, raw_distance.quality);
+            let angle = (start_angle + step * i as f32 + angle_offset) % 360.0;
             let index = (angle * INDEX_MULTIPLIER).round() as usize % 400;
             if min_index.is_none() {
                 min_index = Some(index);

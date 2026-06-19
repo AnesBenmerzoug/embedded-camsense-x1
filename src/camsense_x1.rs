@@ -4,8 +4,22 @@ use embedded_hal::delay::DelayNs;
 use embedded_io::Read;
 
 use crate::camsense_x1::state_machine::StateMachineWrapper;
+use crate::constants::NUMBER_OF_MEASUREMENTS;
 use crate::types::{Error, RawMeasurement};
 use crate::{Measurement, PointCloud};
+
+/// Camsense-X1 controller configuration
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub struct Config {
+    angle_offset: f32,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self { angle_offset: 13.0 }
+    }
+}
 
 /// Camsense-X1 controller
 #[derive(Debug)]
@@ -15,6 +29,7 @@ pub struct Camsense<UART: Read, D: DelayNs> {
     uart: UART,
     delay: D,
     state_machine: StateMachineWrapper,
+    config: Config,
 }
 
 impl<UART, D> Camsense<UART, D>
@@ -23,11 +38,15 @@ where
     D: DelayNs,
 {
     pub fn new(uart: UART, delay: D) -> Self {
-        let state_machine = StateMachineWrapper::new();
+        Self::with_config(uart, delay, Config::default())
+    }
+
+    pub fn with_config(uart: UART, delay: D, config: Config) -> Self {
         Self {
             uart,
             delay,
-            state_machine,
+            state_machine: StateMachineWrapper::new(),
+            config,
         }
     }
 
@@ -47,8 +66,8 @@ where
                 self.state_machine.reset();
 
                 match RawMeasurement::try_from(data) {
-                    Ok(raw) => return Ok(raw.into()),
-                    Err(Error::ChecksumMismatch(e, c)) => {
+                    Ok(raw) => return Ok((raw, self.config.angle_offset).into()),
+                    Err(Error::ChecksumMismatch(_, _)) => {
                         // just continue the loop, state machine already reset
                     }
                     Err(_) => return Err(Error::Other),
@@ -59,7 +78,7 @@ where
 
     pub fn read_point_cloud(&mut self) -> Result<PointCloud, Error<UART::Error>> {
         let mut points = [None; 400];
-        for i in 0..50 {
+        for _ in 0..NUMBER_OF_MEASUREMENTS {
             let measurement = self.read_one_measurement()?;
             for point in measurement.points {
                 if let Some(point) = point {
