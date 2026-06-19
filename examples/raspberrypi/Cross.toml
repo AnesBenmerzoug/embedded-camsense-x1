@@ -1,0 +1,6 @@
+[build]
+default-target = "aarch64-unknown-linux-gnu"
+
+[target.aarch64-unknown-linux-gnu]
+image = ":edge"
+runner = "native"  # don't run inside Docker

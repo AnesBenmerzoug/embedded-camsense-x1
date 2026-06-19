@@ -1,5 +1,5 @@
-use rppal::uart::{Uart, Error as RppalError};
-use embedded_io::{ErrorType, Error as EmbeddedErrorTrait, ErrorKind, Read};
+use embedded_io::{Error as EmbeddedErrorTrait, ErrorKind, ErrorType, Read};
+use rppal::uart::{Error as RppalError, Uart};
 
 #[derive(Debug)]
 pub enum Error {
@@ -22,7 +22,7 @@ impl EmbeddedErrorTrait for Error {
 }
 
 pub struct WrappedUart {
-    uart: Uart
+    uart: Uart,
 }
 
 impl WrappedUart {
