@@ -37,6 +37,6 @@ impl ErrorType for WrappedUart {
 
 impl Read for WrappedUart {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
-        self.uart.read(buf).map_err(|x| Error::Uart(x))
+        self.uart.read(buf).map_err(Error::Uart)
     }
 }
