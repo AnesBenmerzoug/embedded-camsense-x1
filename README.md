@@ -18,6 +18,8 @@
 [Camsense-X1]: https://www.camsense.cn/en/robot/camsenseX1.html
 [embedded-hal]: https://github.com/rust-embedded/embedded-hal
 
+![Picture of Camsense-X1](camsense_x1.jpg)
+
 This library provides a `no_std` interface for interacting with the [Camsense-X1] LiDAR sensor.
 
 Most of the information about the inner workings of the LiDAR was taken from:
@@ -50,9 +52,7 @@ The Camsense-X1 is a cost-effective consumer-level LiDAR with the following char
 
 [^1]: [Camsense-X1 Product Page](https://www.camsense.cn/en/robot/camsenseX1.html)
 
-## Getting Started
-
-### Examples
+## Examples
 
 See the [examples](examples/) directory for examples of using the Camsense-X1 with different micro-controllers and boards.
 
@@ -60,7 +60,6 @@ See the [examples](examples/) directory for examples of using the Camsense-X1 wi
 
 - `defmt` - Enable logging output using [`defmt`](https://crates.io/crates/defmt) and implement `defmt::Format` on certain types.
 - `async` - Enable asynchronous interface.
-
 
 ## License
 
