@@ -18,7 +18,9 @@
 [Camsense-X1]: https://www.camsense.cn/en/robot/camsenseX1.html
 [embedded-hal]: https://github.com/rust-embedded/embedded-hal
 
-![Picture of Camsense-X1](camsense_x1.jpg)
+<figure style="align-items: center; text-align: center;">
+    <img alt="Picture of Camsense-X1" src="https://raw.githubusercontent.com/AnesBenmerzoug/embedded-camsense-x1/main/camsense_x1.jpg"/>
+</figure>
 
 This library provides a `no_std` interface for interacting with the [Camsense-X1] LiDAR sensor.
 
