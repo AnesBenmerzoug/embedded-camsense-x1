@@ -12,10 +12,23 @@
 - Update version number.
 - Update changelog following the [Common Changelog](https://common-changelog.org) style guide
   (as much as possible, of course).
-- Create tag for latest commit (v[0-9]+\.[0-9]+\.[0-9]+) and push it: 
+- Push any remaining changes.
+- Create tag for latest commit (v[0-9]+\.[0-9]+\.[0-9]+): 
 
   ```shell
   git tag -a <tag> -m "<tag message e.g. current date>"
+  ```
+  
+  As an example, for version `1.2.3` on the `01.01.2031` you would do:
+
+  ```shell
+  git tag -a v1.2.3 -m "Version v1.2.3 - 2031.01.01"
+  ```
+
+- Push the tag:
+  
+  ```shell
+  git push --tags
   ```
 
 - Let CI handle the rest.
