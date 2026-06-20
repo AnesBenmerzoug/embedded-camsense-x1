@@ -1,6 +1,9 @@
 # Camsense-X1 - Linux Example
 
-![Screenshot of rerun viewer showing Camsense-X1 data](rerun_viewer_screenshot.png)
+<figure style="align-items: center; text-align: center;">
+    <img alt="Screenshot of rerun viewer showing captured data from Camsense-X1" src="rerun_viewer_screenshot.png"/>
+    <figcaption>Screenshot of rerun viewer showing captured data from Camsense-X1</figcaption>
+</figure>
 
 ## Quick Start
 

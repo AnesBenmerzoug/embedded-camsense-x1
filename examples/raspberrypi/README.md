@@ -21,4 +21,8 @@
 To make it easier to assemble the system, I designed a simple case for
 the Raspberry Pi and the Camsense-X1.
 
-![](rpi_camsense_x1_case.jpg)
+<figure style="align-items: center; text-align: center;">
+    <img alt="Picture of Raspberry Pi and Camsense-X1 case" src="rpi_camsense_x1_case.jpg"/>
+    <figcaption>Picture of Raspberry Pi and Camsense-X1 case</figcaption>
+</figure>
+
