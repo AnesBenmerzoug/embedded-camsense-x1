@@ -21,4 +21,4 @@
 To make it easier to assemble the system, I designed a simple case for
 the Raspberry Pi and the Camsense-X1.
 
-![]()
+![](rpi_camsense_x1_case.jpg)
